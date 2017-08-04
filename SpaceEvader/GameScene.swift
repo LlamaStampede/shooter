@@ -24,11 +24,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var heroSpeed : CGFloat = 100
     
     var twoShots = 0
-    
+    var meteors = [Enemy]()
     var meteorScore = 0
     var gameOver = false
     var scoreLabel = SKLabelNode(fontNamed: "Arial")
-    
+    var meteorTimer : Timer?
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
     
@@ -36,8 +36,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func addMeteor() {
         
         var meteor : Enemy
-        
-        
+    
         
         meteor = Enemy(imageNamed: "MeteorLeft")
         
@@ -60,6 +59,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         {
         moveMeteor = SKAction.move(to: CGPoint(x: -meteor.size.width/2, y: randomY), duration: 5.0)
         
+        meteors.append(meteor)
+            
+        meteorTrail(meteor : meteor )
         meteor.run(SKAction.sequence([moveMeteor, SKAction.removeFromParent()]))
         }
     }
@@ -69,8 +71,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     
+    func scheduledTimerWithTimeInterval(){
+        // Scheduling timer to Call the function "updateCounting" with the interval of 1 seconds
+        meteorTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.updateCounting), userInfo: nil, repeats: true)
+    }
+    
+    func updateCounting(){
+        // Called before each frame is rendered
+        for meteor in meteors
+        {
+            meteorTrail(meteor: meteor)
+        }
+    }
+    
     override func didMove(to view: SKView) {
         
+        scheduledTimerWithTimeInterval()
         backgroundColor = SKColor.lightGray
         
         scoreLabel.fontColor = UIColor.white
@@ -119,7 +135,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
         physicsWorld.contactDelegate = self
-        
     }
     func swipedUp(sender:UISwipeGestureRecognizer){
         var actionMove : SKAction
@@ -273,7 +288,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     
     override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
     }
     func didBegin(_ contact: SKPhysicsContact) {
         
@@ -467,6 +481,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             explosion.size = CGSize(width: 3, height: 3)
             explosion.position = CGPoint(x: meteor.position.x , y: meteor.position.y)
             addChild(explosion)
+        }
+    }
+    func meteorTrail(meteor : Enemy)
+    {
+        let trails : [SKSpriteNode] = [SKSpriteNode(), SKSpriteNode(), SKSpriteNode()]
+        var j = 0
+        for trail in trails {
+            
+            let randomExplosionY = meteor.position.y //+ CGFloat(j * 50)//(random() * (1000 + size.width)) - size.width
+            let randomExplosionX = meteor.position.x + 50 + CGFloat(j * 50)//(random() * (1000 + size.height)) - size.height
+            let moveTrail : SKAction
+            
+            moveTrail = SKAction.move(to: CGPoint(x: randomExplosionX, y: randomExplosionY), duration: 0.1)
+            
+            trail.run(SKAction.sequence([moveTrail, SKAction.removeFromParent()]))
+            trail.color = UIColor.red
+            trail.size = CGSize(width: CGFloat(5 - j), height: CGFloat(5 - j))
+            trail.position = CGPoint(x: meteor.position.x + 50 + CGFloat(j * 50), y: meteor.position.y)
+            addChild(trail)
+            j += 1
         }
     }
     
