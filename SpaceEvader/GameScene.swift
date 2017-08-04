@@ -427,6 +427,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         meteorScore += 1
         
         scoreLabel.text = "\(meteorScore)"
+        
+        explodeMeteor(meteor: meteor as! Enemy)
     }
     func heroHitMeteor(hero : SKSpriteNode, meteor: SKSpriteNode){
         
